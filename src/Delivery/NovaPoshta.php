@@ -169,6 +169,7 @@ class NovaPoshta
                 'number' => $warehouse->Number,
                 'ref' => $warehouse->Ref,
                 'description' => $warehouse->$description,
+                'maxWeight' => $warehouse->TotalMaxWeightAllowed,
             ];
         });
     }
