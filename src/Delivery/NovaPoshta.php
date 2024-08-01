@@ -37,7 +37,7 @@ class NovaPoshta
         $this->api = $api;
     }
 
-    private function send(array $data): object
+    private function send(array $data): array
     {
         try {
             $response = $this->client->post('https://api.novaposhta.ua/v2.0/json/', [
@@ -51,9 +51,15 @@ class NovaPoshta
             $response = json_decode($responseJson);
 
             if ($response->success) {
-                return (object) $response->data;
+                if(is_array($response->data) && isset($response->data[0])){
+               
+                    return $response->data;
+                }else{
+                    dd('error', $response);
+                }
+               
             } else {
-                return (object) $response;
+                return ['success' => false, 'errors' => $response->errors];
             }
         } catch (GuzzleException $e) {
             throw new \RuntimeException('API request failed: ' . $e->getMessage());
@@ -101,13 +107,13 @@ class NovaPoshta
         ];
 
         $response = $this->send($query);
-
-        if (isset($response->success) && !$response->success) {
+      
+        if (isset($response['success']) && !$response['success']) {
             return collect([]);
         }
 
         return collect($response[0]->Addresses)->map(function ($city) {
-            return [
+            return (object) [
                 'ref' => $city->Ref,
                 'deliveryCity' => $city->DeliveryCity,
                 'present' => $city->Present,
@@ -132,7 +138,7 @@ class NovaPoshta
 
         $response = $this->send($query);
 
-        if (isset($response->success) && !$response->success) {
+        if (isset($response['success']) && !$response['success']) {
             return collect([]);
         }
 
@@ -144,7 +150,7 @@ class NovaPoshta
         });
     }
 
-    public function getWarehouses(string $cityRef, string $WarehouseId): Collection
+    public function getWarehouses(string $cityRef, ?string $WarehouseId = null): Collection
     {
         $query = [
             'apiKey' => $this->api,
@@ -156,13 +162,13 @@ class NovaPoshta
                 'Limit' => $this->limit
             ]
         ];
-
+       
         $response = $this->send($query);
-
-        if (isset($response->success) && !$response->success) {
+    
+        if (isset($response['success']) && !$response['success']) {
             return collect([]);
         }
-
+      
         return collect($response)->map(function ($warehouse) {
             $description = ($this->language == 'UA') ? 'Description' : 'DescriptionRu';
 
