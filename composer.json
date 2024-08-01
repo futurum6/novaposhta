@@ -5,7 +5,6 @@
     "require": {
         "php": ">=8.0",
         "guzzlehttp/guzzle": "^7.0",
-        "illuminate/cache": "^10.0",
         "illuminate/collections": "^10.0"
     },
     "autoload": {
