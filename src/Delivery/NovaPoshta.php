@@ -4,7 +4,6 @@ namespace Futurum\Delivery;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 
 class NovaPoshta
@@ -51,13 +50,11 @@ class NovaPoshta
             $response = json_decode($responseJson);
 
             if ($response->success) {
-                if(is_array($response->data) && isset($response->data[0])){
-               
+                if (is_array($response->data) && isset($response->data[0])) {
                     return $response->data;
-                }else{
+                } else {
                     dd('error', $response);
                 }
-               
             } else {
                 return ['success' => false, 'errors' => $response->errors];
             }
@@ -68,28 +65,24 @@ class NovaPoshta
 
     public function getCity(string $city = '', ?string $ref = null): Collection
     {
-        $cacheKey = 'novaposhta_cities_' . md5($city . $ref . $this->language . $this->limit);
+        $query = [
+            'apiKey' => $this->api,
+            'modelName' => "Address",
+            'calledMethod' => "getCities",
+            'methodProperties' => [
+                'Limit' => $this->limit,
+                'FindByString' => $city
+            ]
+        ];
 
-        return Cache::remember($cacheKey, 60 * 60, function () use ($city, $ref) {
-            $query = [
-                'apiKey' => $this->api,
-                'modelName' => "Address",
-                'calledMethod' => "getCities",
-                'methodProperties' => [
-                    'Limit' => $this->limit,
-                    'FindByString' => $city
-                ]
+        $response = $this->send($query);
+
+        return collect($response)->map(function ($city) {
+            $description = 'Description' . $this->language;
+            return [
+                'ref' => $city->Ref,
+                'cityName' => $city->$description,
             ];
-
-            $response = $this->send($query);
-
-            return collect($response)->map(function ($city) {
-                $description = 'Description' . $this->language;
-                return [
-                    'ref' => $city->Ref,
-                    'cityName' => $city->$description,
-                ];
-            });
         });
     }
 
@@ -107,7 +100,7 @@ class NovaPoshta
         ];
 
         $response = $this->send($query);
-      
+
         if (isset($response['success']) && !$response['success']) {
             return collect([]);
         }
@@ -162,16 +155,15 @@ class NovaPoshta
                 'Limit' => $this->limit
             ]
         ];
-       
+
         $response = $this->send($query);
-    
+
         if (isset($response['success']) && !$response['success']) {
             return collect([]);
         }
-      
+
         return collect($response)->map(function ($warehouse) {
             $description = ($this->language == 'UA') ? 'Description' : 'DescriptionRu';
-
 
             return [
                 'number' => $warehouse->Number,
@@ -371,7 +363,7 @@ class NovaPoshta
     public function deleteRegistry(array $document_ref, string $Ref): object
     {
         $query = [
-            'apiKey' => $this->api,
+            'apiKey' => $api,
             'modelName' => "ScanSheet",
             'calledMethod' => "removeDocuments",
             'methodProperties' => [
