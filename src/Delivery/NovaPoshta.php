@@ -345,7 +345,25 @@ class NovaPoshta
 
         return $this->send($query);
     }
+    public function getMarkingZebra(array $trackingNumbers)
+    { 
+        $orders = implode(',', $trackingNumbers);
 
+        $url = "https://my.novaposhta.ua/orders/printMarking100x100/orders/{$orders}/type/pdf/zebra/zebra/apiKey/{$this->api}";
+
+        try {
+            $response = $this->client->get($url, ['stream' => true]);
+        
+            if ($response->getStatusCode() === 200) {
+                return $response->getBody()->getContents();
+            } else {
+                return null;
+            }
+        } catch (RequestException $e) {
+            // Логирование ошибок или другое обработка ошибок
+            return null;
+        }
+    }
     public function addRegistry(array $document_ref, ?string $registry_ref = null): object
     {
         $query = [
@@ -411,8 +429,9 @@ class NovaPoshta
         return $this->send($query);
     }
 
-    public function addTtn(array $data): object
+    public function addTtn( $data)
     {
+      
         $query = [
             'apiKey' => $this->api,
             'modelName' => "InternetDocument",
@@ -442,16 +461,17 @@ class NovaPoshta
         if ($data['EDRPOU']) {
             $query['methodProperties']['EDRPOU'] = $data['EDRPOU'];
         }
-
+      
         if ($data['serviceType'] === 'WarehouseWarehouse') {
             $r = $this->getSettlements($data['recipientCityName'])->first();
-
-            $query['methodProperties']['RecipientCityName'] = $r['mainDescription'];
-            $query['methodProperties']['RecipientArea'] = $r['area'];
-            $query['methodProperties']['RecipientAreaRegions'] = $r['region'];
+         
+            $query['methodProperties']['RecipientCityName'] = $r->mainDescription;
+      
+            $query['methodProperties']['RecipientArea'] = $r->area;
+            $query['methodProperties']['RecipientAreaRegions'] = $r->region;
             $query['methodProperties']['RecipientAddressName'] = $data['recipientAddress'];
         }
-
+     
         if ($data['serviceType'] === 'WarehouseDoors') {
             $CityRecipient = $this->getCity($data['city'])->data[0];
 
@@ -497,7 +517,7 @@ class NovaPoshta
                 'errors' => $result,
             ];
         }
-
+      
         return [
             'success' => true,
             'intDocNumber' => $result[0]->IntDocNumber,
