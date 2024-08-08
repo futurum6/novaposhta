@@ -293,7 +293,7 @@ class NovaPoshta
         return $this->send($query);
     }
 
-    public function deleteInternetDocument(array $document_ref): object
+    public function deleteInternetDocument(array $document_ref): array
     {
         $query = [
             'apiKey' => $this->api,
