@@ -154,6 +154,33 @@ class NovaPoshta
             'PackForSale' => 1
         ]);
     }
+    public function getCounterpartyContactPersons(string $ref): array
+    {
+        $query = [
+            'apiKey' => $this->api,
+            'modelName' => 'Counterparty',
+            'calledMethod' => 'getCounterpartyContactPersons',
+            'methodProperties' => [
+                'Ref' => $ref,
+            ],
+        ];
+
+        return $this->send($query);
+    }
+
+    public function getCounterpartySender(): array
+    {
+        $query = [
+            'apiKey' => $this->api,
+            'modelName' => 'Counterparty',
+            'calledMethod' => 'getCounterparties',
+            'methodProperties' => [
+                'CounterpartyProperty' => 'Sender',
+            ],
+        ];
+
+        return $this->send($query);
+    }
 
     public function getDocumentList(string $dateTimeFrom, string $dateTimeTo, bool $redeliveryMoney = false, bool $unassembledCargo = false): array
     {
@@ -222,7 +249,7 @@ class NovaPoshta
             'LastName' => $data['recipientSurname'],
             'Phone' => $data['recipientPhone']
         ]);
- 
+
         if (!$recipient['success']) {
             return $recipient;
         }
