@@ -278,6 +278,7 @@ class NovaPoshta
 
     private function addPaymentProperties(array &$methodProperties, array $data): void
     {
+         $methodProperties['Cost'] = (float)$data['totalPrice'];
         if ($data['EDRPOU']) {
             $methodProperties['AfterpaymentOnGoodsCost'] = (int)$data['totalPrice'];
         } else {
