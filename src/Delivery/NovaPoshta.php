@@ -270,7 +270,9 @@ class NovaPoshta
         $methodProperties['RecipientAddress'] = $counterpartyAddress['data'][0]->Ref;
         $methodProperties['RecipientAddressName'] = $counterpartyAddress['data'][0]->Description;
         $methodProperties['ContactRecipient'] = $recipient['data'][0]->ContactPerson->data[0]->Ref;
-
+        if ($data['paid'] === 0) {
+            $this->addPaymentProperties($methodProperties, $data);
+        }
         return $this->sendRequest('InternetDocument', 'save', $methodProperties);
     }
 
