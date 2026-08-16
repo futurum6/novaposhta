@@ -222,7 +222,7 @@ class NovaPoshta
         }
 
         if ($data['serviceType'] === 'WarehouseWarehouse') {
-            $this->addWarehouseWarehouseProperties($methodProperties, $data);
+            return $this->addWarehouseWarehouseProperties($methodProperties, $data);
         } elseif ($data['serviceType'] === 'WarehouseDoors') {
             return $this->addWarehouseDoorsProperties($methodProperties, $data);
         }
@@ -234,10 +234,29 @@ class NovaPoshta
         return $this->sendRequest('InternetDocument', 'save', $methodProperties);
     }
 
-    private function addWarehouseWarehouseProperties(array &$methodProperties, array $data): void
+    private function addWarehouseWarehouseProperties(array &$methodProperties, array $data): array
     {
+        $recipient = $this->addCounterpartyRecipient($data['recipientCity']->ref_np, [
+            'FirstName' => $data['recipientName'],
+            'MiddleName' => $data['recipientPatronymic'],
+            'LastName' => $data['recipientSurname'],
+            'Phone' => $data['recipientPhone']
+        ]);
+
+        if (!$recipient['success']) {
+            return $recipient;
+        }
+
         $methodProperties['CityRecipient'] = $data['recipientCity']->ref_np;
-        $methodProperties['RecipientAddressName'] = $data['recipientAddress']->number;
+        $methodProperties['Recipient'] = $recipient['data'][0]->Ref;
+        $methodProperties['RecipientAddress'] = $data['recipientAddress']->ref;
+        $methodProperties['ContactRecipient'] = $recipient['data'][0]->ContactPerson->data[0]->Ref;
+
+        if ($data['paid'] === 0) {
+            $this->addPaymentProperties($methodProperties, $data);
+        }
+
+        return $this->sendRequest('InternetDocument', 'save', $methodProperties);
     }
 
     private function addWarehouseDoorsProperties(array &$methodProperties, array $data): array
