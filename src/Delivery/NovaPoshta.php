@@ -236,9 +236,7 @@ class NovaPoshta
 
     private function addWarehouseWarehouseProperties(array &$methodProperties, array $data): void
     {
-        $methodProperties['RecipientCityName'] = $data['recipientCity']->name_ua;
-        $methodProperties['RecipientArea'] = $data['recipientCity']->district_ua;
-        $methodProperties['RecipientAreaRegions'] = $data['recipientCity']->region_ua;
+        $methodProperties['CityRecipient'] = $data['recipientCity']->ref_np;
         $methodProperties['RecipientAddressName'] = $data['recipientAddress']->number;
     }
 
